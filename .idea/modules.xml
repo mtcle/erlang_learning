@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/workspace-erlang.iml" filepath="$PROJECT_DIR$/workspace-erlang.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/erlang_learning.iml" filepath="$PROJECT_DIR$/.idea/erlang_learning.iml" />
     </modules>
   </component>
 </project>
