@@ -2,7 +2,7 @@
 %%% @author mtcle@126.com
 %%% @copyright (C) 2020, 
 %%% @doc 宏定义的使用，类似c中的宏定义，可以定义常量、定义函数等等
-%%%
+%%% 同样，erlang系统自带的有一些宏定义，例如MODULE、LINE、MACHINE
 %%% @end
 %%% Created : 16. 9月 2020 15:10
 %%%-------------------------------------------------------------------
@@ -21,3 +21,7 @@
 -else.
 -define(Debug(X),true).
 -endif.
+
+%% 一个比较常用在输出调试信息的宏
+-define(VALUE(Call),io:format("~p = ~p~n",[??Call,Call])).
+%% test1() -> ?VALUE(length([1,2,3])).
