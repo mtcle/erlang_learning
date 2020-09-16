@@ -14,12 +14,12 @@
 make_challenge()->
   random_string(25).
 make_response(Change,Secret)->
-  lib_md5:string(Change++Secret).
+  base64:encode(Change++Secret).
 
 is_response_correct(Challenge,Response,Secret)->
-  case lib_md5:string(Challenge++Secret) of
+  case base64:encode(Challenge++Secret) of
     Response->true;
-    _->fasle
+    _->false
   end.
 
 %% 生成一个随机字符串，包含N个长度
@@ -31,7 +31,7 @@ random_string(0,D)-> D;
 random_string(N,D)->
   random_string(N-1,[random:uniform(26)-1+$a|D]).
 random_seed()->
-  {_,X}=erlang:now(),
+  {_,_,X}=erlang:now(),
   {H,M,S}=time(),
   H1=H*X rem 32767,
   M1=M*X rem 32767,

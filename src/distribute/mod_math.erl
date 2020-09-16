@@ -18,10 +18,22 @@ run(Name,ArgC,ArgS)->
 loop(Name)->
   receive
     {chan,Name,{fact,N}}->
-      Name!{send,fac(N)};
+      Name!{send,fac(N)},
+      loop(Name);
     {chan,Name,{fibon,N}}->
-      Name!{send,fib,fib(N)}
+      Name!{send,fib(N)},
+      loop(Name);
+    {chan,Name,{sum,N,M}}->
+      Name!{send,sum(N,M)},
+      loop(Name);
+    {chan_closed,Name}->
+      io:format("mod_math stopping~n"),
+      exit(normal)
   end.
+sum(N,M)->
+  M+N.
+
+
 fac(0)->1;
 fac(N)->N*fac(N-1).
 fib(1)->1;

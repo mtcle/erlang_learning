@@ -53,11 +53,11 @@ loop1(Socket,Pid,Trace)->
       trace_it(Trace,closeByClient),
       gen_tcp:close(Socket);
     {send,Term}->
-      trace_it(Trace,{seningMessage,Term}),
+      trace_it(Trace,{sendingMessage,Term}),
       gen_tcp:send(Socket,term_to_binary(Term)),
       loop1(Socket,Pid,Trace);
     UUg->
-      io:format("lib_chan_mm:-----error-----~p!n",[UUg]),
+      io:format("lib_chan_mm:-----error-----~ts~n",[UUg]),
       loop1(Socket,Pid,Trace)
   end.
 

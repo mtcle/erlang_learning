@@ -1,0 +1,2 @@
+{port,2333}.
+{service,math,password,"1234",mfa,mod_math,run,[]}.

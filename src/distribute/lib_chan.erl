@@ -26,7 +26,7 @@ start_server(Conf) ->
   io:format("lib_chan starting:~p~n", [Conf]),
   case file:consult(Conf) of
     {ok, ConfData} ->
-      io:format("Conf~p~n ", [Conf]),
+      io:format("Conf~p~n ", [ConfData]),
       case check_terms(ConfData) of
         [] ->
           start_server1(ConfData);
@@ -42,7 +42,7 @@ check_terms(ConfData) ->
   L = map(fun check_term/1, ConfData),
   [X || {error, X} <- L].
 check_term({port, P}) when is_integer(P) -> ok;
-check_term({service, _, password, _,mfa, _, _}) -> ok;
+check_term({service, _, password, _,mfa, _, _,_}) -> ok;
 check_term(X) -> {error, {badTerm, X}}.
 
 start_server1(ConfigData) ->
@@ -70,7 +70,7 @@ start_erl_port_server(MM, ConfigData) ->
               send(MM, ack),
               really_start(MM, ArgC, MFA);
             _ ->
-              do_auth(Pwd, MM, ArgC, MFA)
+              do_authentication(Pwd, MM, ArgC, MFA)
           end;
         no ->
           io:format("sending bad service~n"),
@@ -82,21 +82,6 @@ start_erl_port_server(MM, ConfigData) ->
       exit({protocolViolation, Any})
   end.
 
-%% 做密码认证，调用认证模块的校验功能
-do_auth(Pwd, MM, ArgC, MFA) ->
-  C = lib_chan_auth:make_challenge(),
-  send(MM, {challenge, C}),
-  receive
-    {chan, MM, {response, R}} ->
-      case lib_chan_auth:is_response_correct(C, R, Pwd) of
-        true ->
-          send(MM, ack),
-          really_start(MM, ArgC, MFA);
-        false ->
-          send(MM, authFail),
-          close(MM)
-      end
-  end.
 
 really_start(MM, ArgC, {Mod, Func, ArgS}) ->
   case (catch apply(Mod, Func, [MM, ArgC, ArgS])) of
@@ -109,7 +94,7 @@ really_start(MM, ArgC, {Mod, Func, ArgS}) ->
   end.
 
 
-get_service_definition(Mod, [{server, Mod, password, Pwd, mfa, M, F, A} | _]) ->
+get_service_definition(Mod, [{service, Mod, password, Pwd, mfa, M, F, A} | _]) ->
   {yes, Pwd, {M, F, A}};
 get_service_definition(Name, [_ | T])->
   get_service_definition(Name,T);
@@ -141,6 +126,24 @@ connect(Parent, Host, Port) ->
       Parent ! {self(), Error}
   end.
 
+%% 做密码认证，调用认证模块的校验功能
+do_authentication(Pwd,MM,ArgC,MFA)->
+  C=lib_chan_auth:make_challenge(),
+  send(MM,{challenge,C}),
+  receive
+    {chan,MM,{response,R}}->
+      case lib_chan_auth:is_response_correct(C,R,Pwd)of
+        true->
+          send(MM,ack),
+          io:format("auth success!~n"),
+          really_start(MM,ArgC,MFA);
+        false->
+          io:format("auth failed!~n"),
+          send(MM,authFail),
+          close(MM)
+      end
+  end
+.
 
 authenticate(MM, Service, Secret, ArgC) ->
   send(MM, {startService, Service, ArgC}),

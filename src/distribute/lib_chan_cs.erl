@@ -33,7 +33,7 @@ start_raw_server(Port,Fun,Max,PacketLength)->
       {error,already_started}
   end.
 
-stop(Port) ->
+stop(Port) when is_integer(Port) ->
   Name=port_name(Port),
   case whereis(Name) of
     undefined->
@@ -43,12 +43,12 @@ stop(Port) ->
       (catch unregister(Name)),
       stopped
   end.
-children(Port)->
+children(Port) when is_integer(Port)->
   port_name(Port)!{children,self()},
   receive
     {session_server,Reply}->Reply
   end.
-port_name(Port)->
+port_name(Port) when is_integer(Port)->
   list_to_atom("portServer"++integer_to_list(Port)).
 
 cold_start(Master,Port,Fun,Max,PacketLength)->
@@ -101,11 +101,12 @@ start_child(Parent,Listen,Fun)->
       Parent!{istarted,self()},
       inet:setopts(Socket,[{packet,4},binary,{nodelay,true},{active,true}]),
       process_flag(trap_exit,true),
-      case (catch Fun(socket)) of
-        {"EXIT",normal}->
+      case (catch Fun(Socket)) of
+        {'EXIT',normal}->
           true;
         {'EXIT',Why}->
-          io:format("port process dies with exit: ~p ~n",[Why]);
+          io:format("port process dies with exit: ~p ~n",[Why]),
+          true;
         _->
           true
       end
